@@ -113,42 +113,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-/**
- * Submit waitlist form
- */
-async function submitWaitlist(event) {
-    event.preventDefault();
-    
-    const form = document.getElementById('waitlist-form');
-    const messageDiv = document.getElementById('waitlist-message');
-    const submitButton = form.querySelector('button[type="submit"]');
-    
-    // Get form data
-    const email = document.getElementById('email').value.trim();
-    const feedback = document.getElementById('feedback').value.trim();
-    
-    // Validate email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        showMessage(messageDiv, 'Please enter a valid email address.', 'error');
-        return;
-    }
-    
-    // Disable submit button
-    submitButton.disabled = true;
-    submitButton.textContent = 'Submitting...';
-    
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email: email,
-                feedback: feedback || null
-            })
-        });
+
+/** 
+    *submit waitlist
+    **/
+const response = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+    },
+    body: JSON.stringify({
+        email: email,
+        feedback: feedback || null
+    })
+});
+
         
         const data = await response.json();
         
