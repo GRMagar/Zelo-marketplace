@@ -113,44 +113,71 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+/**
+ * Submit waitlist form
+ */
+async function submitWaitlist(event) {
+    event.preventDefault();
 
-/** 
-    *submit waitlist
-    **/
-const response = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-    },
-    body: JSON.stringify({
-        email: email,
-        feedback: feedback || null
-    })
-});
+    const form = document.getElementById('waitlist-form');
+    const messageDiv = document.getElementById('waitlist-message');
+    const submitButton = form.querySelector('button[type="submit"]');
 
-        
-        const data = await response.json();
-        
+    const email = document.getElementById('email').value.trim();
+    const feedback = document.getElementById('feedback').value.trim();
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showMessage(messageDiv, 'Please enter a valid email address.', 'error');
+        return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = 'Submitting...';
+
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({
+                email: email,
+                feedback: feedback || null
+            })
+        });
+
         if (response.ok) {
-            // Success
-            showMessage(messageDiv, 'Thank you! You\'ve been added to the waitlist. We\'ll be in touch soon!', 'success');
+            showMessage(
+                messageDiv,
+                "Thank you! You've been added to the waitlist. We'll be in touch soon!",
+                'success'
+            );
             form.reset();
         } else {
-            // Error from server
-            showMessage(messageDiv, data.message || 'Something went wrong. Please try again.', 'error');
+            const errorData = await response.json();
+            showMessage(
+                messageDiv,
+                errorData.message || 'Something went wrong. Please try again.',
+                'error'
+            );
         }
     } catch (error) {
-        // Network error or CORS issue
-        console.error('Error:', error);
-        showMessage(messageDiv, 'Unable to connect to server. Please check that the backend is running and the API_URL is correct.', 'error');
+        console.error(error);
+        showMessage(
+            messageDiv,
+            'Unable to connect. Please try again later.',
+            'error'
+        );
     } finally {
-        // Re-enable submit button
         submitButton.disabled = false;
         submitButton.textContent = 'Join the Waitlist';
     }
 }
+
 
 /**
  * Show message in waitlist form
